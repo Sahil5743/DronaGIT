@@ -22,10 +22,10 @@ jobs:
           ERRORS=()
           VALID_TYPES=("notes" "papers" "syllabus" "practicals")
           VALID_PAPER_TYPES=("Sessional" "University" "Pre University" "Other")
-          VALID_BRANCHES=("CSE" "AIML" "ECE" "IT" "ME" "CE" "EE")
+          MIN_SEM=1
+          MAX_SEM=8
           FOUND_SUBMISSION=false
 
-          # Find all submission folders (those containing a metadata.json)
           while IFS= read -r metadata_file; do
             FOUND_SUBMISSION=true
             dir=$(dirname "$metadata_file")
@@ -100,6 +100,8 @@ jobs:
             if [ -n "$semester" ]; then
               if ! echo "$semester" | grep -qE '^[0-9]+$'; then
                 ERRORS+=("[$folder_name] 'semester' must be a number. Got: '$semester'.")
+              elif [ "$semester" -lt "$MIN_SEM" ] || [ "$semester" -gt "$MAX_SEM" ]; then
+                ERRORS+=("[$folder_name] 'semester' must be between $MIN_SEM and $MAX_SEM. Got: '$semester'.")
               fi
             fi
 
@@ -130,27 +132,20 @@ jobs:
               ERRORS+=("[$folder_name] Unknown keys in metadata.json: $unknown_keys")
             fi
 
-            echo "Checks complete for $folder_name"
-
           done < <(find submissions -name "metadata.json" 2>/dev/null)
 
-          echo ""
           if [ "$FOUND_SUBMISSION" = false ]; then
             echo "No submission folders found in submissions/. Nothing to validate."
             exit 0
           fi
 
           if [ ${#ERRORS[@]} -gt 0 ]; then
-            echo ""
             echo "Validation failed with ${#ERRORS[@]} error(s):"
-            echo ""
             for err in "${ERRORS[@]}"; do
-              echo "  • $err"
+              echo "  - $err"
             done
-            echo ""
             echo "Please fix the above issues and push again."
             exit 1
           else
-            echo ""
-            echo "All submissions passed validation!"
+            echo "All submissions passed validation."
           fi
