@@ -1,5 +1,6 @@
 import { readFileSync, existsSync, rmSync, readdirSync } from "fs";
 import * as path from "path";
+import { validateSubmission } from "./validate-submissions.js";
 
 const apiUrl = process.env.API_BASE_URL;
 const adminUsername = process.env.ADMIN_USERNAME;
@@ -36,49 +37,16 @@ async function main() {
     process.exit(1);
   }
 
-  const requiredFields = ["type", "title", "branch", "semester"];
-  for (const field of requiredFields) {
-    if (!metadata[field]) {
-      console.error(`Missing required field in metadata: ${field}`);
-      process.exit(1);
+  const validationErrors = validateSubmission(absoluteMetadataPath);
+  if (validationErrors.length > 0) {
+    console.error("Validation failed prior to publishing:");
+    for (const err of validationErrors) {
+      console.error(`  - ${err}`);
     }
+    process.exit(1);
   }
 
   const categoryName = metadata.type.toLowerCase();
-  const validCategories = ["notes", "papers", "syllabus", "practicals"];
-
-  if (!validCategories.includes(categoryName)) {
-    console.error(
-      `Invalid category type: ${categoryName}. Must be one of: ${validCategories.join(", ")}`,
-    );
-    process.exit(1);
-  }
-
-  if (categoryName !== "syllabus" && !metadata.subject) {
-    console.error(
-      `Missing required field in metadata: subject (required for category: ${categoryName})`,
-    );
-    process.exit(1);
-  }
-
-  if (categoryName === "papers") {
-    if (!metadata.year) {
-      console.error(`Missing 'year' field in metadata (required for papers).`);
-      process.exit(1);
-    }
-    const validPaperTypes = [
-      "Sessional",
-      "University",
-      "Pre University",
-      "Other",
-    ];
-    if (metadata.paperType && !validPaperTypes.includes(metadata.paperType)) {
-      console.error(
-        `Invalid 'paperType' in metadata. Must be one of: ${validPaperTypes.join(", ")}`,
-      );
-      process.exit(1);
-    }
-  }
 
   const filesInDir = readdirSync(dirPath);
   const pdfFileName = filesInDir.find((f) => f.toLowerCase().endsWith(".pdf"));
@@ -121,7 +89,7 @@ async function main() {
 
     const form = new FormData();
     form.append("title", metadata.title);
-    form.append("branch", metadata.branch);
+    form.append("branch", JSON.stringify(metadata.branch));
     form.append("semester", metadata.semester);
     form.append("category", categoryName);
 

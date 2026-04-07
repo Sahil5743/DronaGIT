@@ -62,7 +62,7 @@ Use the correct structure based on your resource type:
 | `type`      | ✅               | `notes`, `papers`, `syllabus`, `practicals`          |
 | `title`     | ✅               | Title of the resource                                |
 | `subject`   | ✅               | Subject name                                         |
-| `branch`    | ✅               | e.g. `CSE`, `AIML`, `ECE`                            |
+| `branch`    | ✅               | e.g. `["CSE"]`, `["AIML"]`, `["ECE"]`                |
 | `semester`  | ✅               | Semester number                                      |
 | `year`      | ✅ (papers only) | Year of paper                                        |
 | `paperType` | ✅ (papers only) | `Sessional`, `University`, `Pre University`, `Other` |
@@ -76,7 +76,7 @@ Use the correct structure based on your resource type:
   "type": "notes",
   "title": "Data Structures Unit 2",
   "subject": "ADS",
-  "branch": "AIML",
+  "branch": ["AIML"],
   "semester": "3"
 }
 ```
@@ -90,7 +90,7 @@ Use the correct structure based on your resource type:
   "type": "papers",
   "title": "Data Structures End Term 2023",
   "subject": "ADS",
-  "branch": "AIML",
+  "branch": ["AIML"],
   "semester": "3",
   "year": "2023",
   "paperType": "University"
